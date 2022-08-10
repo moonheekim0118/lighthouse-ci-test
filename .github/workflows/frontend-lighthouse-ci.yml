@@ -17,8 +17,8 @@ jobs:
   lhci:
     name: Lighthouse
     runs-on: ubuntu-latest
-      env:
-        working-directory: ./frontend
+    env:
+      working-directory: ./frontend
     steps:
       - uses: actions/checkout@v2
         with:
