@@ -14,84 +14,62 @@ on:
     paths: "frontend/**"
 
 jobs:
-  lhci:
-    name: Lighthouse
+  generate_lighthouse_audit:
+    timeout-minutes: 30
     runs-on: ubuntu-latest
-    env:
-      working-directory: ./frontend
     steps:
-      - uses: actions/checkout@v3
+      - name: Add comment to PR
+        id: loading_comment_to_pr
+        uses: marocchino/sticky-pull-request-comment@v1
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
-      - name: Use Node.js 16.x
-        uses: actions/setup-node@v3
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          header: lighthouse
+          message: |
+            Running Lighthouse audit...
+      - name: Capture Vercel preview URL
+        id: vercel_preview_url
+        uses: aaron-binary/vercel-preview-url-action@v0.0.3
         with:
-          node-version: 16
-      - name: npm install, build
-        run: |
-          npm install
-          npm run build
-        working-directory: ${{ env.working-directory }}
-      - name: run Lighthouse CI
-        run: |
-          npm install -g @lhci/cli@0.8.x
-          lhci autorun
-        working-directory: ${{ env.working-directory }}
-        env:
-          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+      - uses: actions/checkout@v2
+      - name: Audit preview URL with Lighthouse
+        id: lighthouse_audit
+        uses: treosh/lighthouse-ci-action@v3
+        with:
+          urls: |
+            ${{ steps.vercel_preview_url.outputs.vercel_preview_url }}
+          uploadArtifacts: true
+          temporaryPublicStorage: true
       - name: Format lighthouse score
         id: format_lighthouse_score
         uses: actions/github-script@v3
         with:
           github-token: ${{secrets.TOKEN}}
           script: |
-
-            const fs = require('fs');
-            # 본인의 환경에 맞게 설정해주세요
-            const results = JSON.parse(fs.readFileSync("/{Github Actions runner directory}/lhci_reports/manifest.json"));
-            # comment를 담을 변수 입니다.
-            let comments = "";
-
-            results.forEach((result) => {
-              const { summary, jsonPath } = result;
-              const { audits } = details;
-
-              const details = JSON.parse(fs.readFileSync(jsonPath));
-              const formatResult = (res) => Math.round(res * 100);
-
-              Object.keys(summary).forEach(
-                (key) => (summary[key] = formatResult(summary[key]))
-              );
-
-              # 점수가 색상으로 구분되는 방식 (https://web.dev/performance-scoring/#color-coding)
-              const score = (res) => (res >= 90 ? "🟢" : res >= 50 ? "🟠" : "🔴");
-
-              const comment = [
-                `⚡️ Lighthouse report!`,
-                `| Category | Score |`,
-                `| --- | --- |`,
-                `| ${score(summary.performance)} Performance | ${summary.performance} |`,
-                { ... }
-              ].join("\n");
-
-              const detail = [
-                `| Category | Score |`,
-                `| --- | --- |`,
-                `| ${score(
-                  audits["first-contentful-paint"].score * 100
-                )} First Contentful Paint | ${
-                  audits["first-contentful-paint"].displayValue
-                } |`,
-                { ... }
-              ].join("\n");
-              comments += comment + "\n" + detail + "\n";
-            });
-            # comments 변수의 값을 다음 job으로 넘겨줍니다.
-            core.setOutput('comments', comments)
-
-      - name: comment PR
-        uses: unsplash/comment-on-pr@v1.3.0
-        env:
-          TOKEN: ${{ secrets.TOKEN }}
+            const result = ${{ steps.lighthouse_audit.outputs.manifest }}[0].summary
+            const links = ${{ steps.lighthouse_audit.outputs.links }}
+            const formatResult = (res) => Math.round((res * 100))
+            Object.keys(result).forEach(key => result[key] = formatResult(result[key]))
+            const score = res => res >= 90 ? '🟢' : res >= 50 ? '🟠' : '🔴'
+            const comment = [
+                `⚡️ [Lighthouse report](${Object.values(links)[0]}) for the changes in this PR:`,
+                '| Category | Score |',
+                '| --- | --- |',
+                `| ${score(result.performance)} Performance | ${result.performance} |`,
+                `| ${score(result.accessibility)} Accessibility | ${result.accessibility} |`,
+                `| ${score(result['best-practices'])} Best practices | ${result['best-practices']} |`,
+                `| ${score(result.seo)} SEO | ${result.seo} |`,
+                `| ${score(result.pwa)} PWA | ${result.pwa} |`,
+                ' ',
+                `*Lighthouse ran on [${Object.keys(links)[0]}](${Object.keys(links)[0]})*`
+            ].join('\n')
+             core.setOutput("comment", comment);
+      - name: Add comment to PR
+        id: comment_to_pr
+        uses: marocchino/sticky-pull-request-comment@v1
         with:
-          msg: ${{ steps.format_lighthouse_score.outputs.comments}}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          number: ${{ github.event.issue.number }}
+          header: lighthouse
+          message: |
+            ${{ steps.format_lighthouse_score.outputs.comment }}
