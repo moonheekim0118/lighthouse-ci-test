@@ -77,8 +77,7 @@ jobs:
             core.setOutput('comments', comments)
 
       - name: comment PR
-        uses: unsplash/comment-on-pr@v1.3.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: marocchino/sticky-pull-request-comment@v2
         with:
-          msg: ${{ steps.format_lighthouse_score.outputs.comments}}
+          message: |
+            ${{ steps.format_lighthouse_score.outputs.comments}}
