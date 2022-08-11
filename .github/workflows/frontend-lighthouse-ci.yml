@@ -1,11 +1,5 @@
 name: 프론트엔드 Google Lighthouse 성능 측정 자동화
 on:
-  push:
-    branches:
-      - main
-      - release/*
-      - develop
-    paths: "frontend/**"
   pull_request:
     branches:
       - main
