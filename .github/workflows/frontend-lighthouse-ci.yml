@@ -47,7 +47,7 @@ jobs:
           script: |
 
             const fs = require('fs');
-            const results = JSON.parse(fs.readFileSync("/frontend/lhci_reports/manifest.json"));
+            const results = JSON.parse(fs.readFileSync("/lhci_reports/manifest.json"));
             let comments = "";
 
             results.forEach((result) => {
