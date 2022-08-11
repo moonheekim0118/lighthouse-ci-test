@@ -6,7 +6,7 @@ function App() {
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
-        <p>허허. 코멘트 달아주시지요.</p>
+        <p>대대적인 수정</p>
         <a
           className="App-link"
           href="https://reactjs.org"
