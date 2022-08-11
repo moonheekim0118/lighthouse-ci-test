@@ -48,12 +48,11 @@ jobs:
 
             const fs = require('fs');
             const results = JSON.parse(fs.readFileSync("./frontend/lhci_reports/manifest.json"));
-            const details = JSON.parse(fs.readFileSync(jsonPath));
             let comments = "";
 
             results.forEach((result) => {
               const { summary, jsonPath } = result;
-              
+              const details = JSON.parse(fs.readFileSync(jsonPath));
               const { audits } = details;
 
               
