@@ -42,6 +42,7 @@ jobs:
       - name: Format lighthouse score
         id: format_lighthouse_score
         uses: actions/github-script@v3
+        working-directory: ${{ env.working-directory }}
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
