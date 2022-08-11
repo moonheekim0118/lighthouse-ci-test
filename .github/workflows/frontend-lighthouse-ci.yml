@@ -56,7 +56,7 @@ jobs:
             const score = (res) => (res >= 90 ? "🟢" : res >= 50 ? "🟠" : "🔴");
               
             const comment = [
-                `⚡️ Lighthouse report!`,
+                `⚡️ 줍줍 Lighthouse 성능 측정 결과`,
                 `| Category | Score |`,
                 `| --- | --- |`,
                 `| ${score(summary.performance)} Performance | ${summary.performance} |`,
@@ -96,7 +96,7 @@ jobs:
                 } |`,
               ].join("\n");
               
-              comments += comment + "\n" + detail + "\n";
+              comments += comment + "\n" +"\n"+ detail + "\n";
             });
             core.setOutput('comments', comments)
 
