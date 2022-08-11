@@ -66,8 +66,6 @@ jobs:
               ].join("\n");
 
               const detail = [
-                `| Category | Score |`,
-                `| --- | --- |`,
                 `| ${score(
                   audits["first-contentful-paint"].score * 100
                 )} First Contentful Paint | ${
