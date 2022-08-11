@@ -42,13 +42,12 @@ jobs:
       - name: Format lighthouse score
         id: format_lighthouse_score
         uses: actions/github-script@v3
-        working-directory: ${{ env.working-directory }}
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
 
             const fs = require('fs');
-            const results = JSON.parse(fs.readFileSync("/lhci_reports/manifest.json"));
+            const results = JSON.parse(fs.readFileSync("./frontend/lhci_reports/manifest.json"));
             let comments = "";
 
             results.forEach((result) => {
